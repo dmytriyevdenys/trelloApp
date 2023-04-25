@@ -5,56 +5,65 @@
   </head>
   <body>
     <script src="https://p.trellocdn.com/power-up.min.js"></script>
-    <script >
-    const  WHITE_ICON = 'https://cdn.hyperdev.com/us-east-1%3A3d31b21c-01a0-4da2-8827-4bc6e88b7618%2Ficon-white.svg';
-const BLACK_ICON = 'https://cdn.hyperdev.com/us-east-1%3A3d31b21c-01a0-4da2-8827-4bc6e88b7618%2Ficon-black.svg';
+    <script>
+    const WHITE_ICON = 'https://cdn.hyperdev.com/us-east-1%3A3d31b21c-01a0-4da2-8827-4bc6e88b7618%2Ficon-white.svg';
+    const BLACK_ICON = 'https://cdn.hyperdev.com/us-east-1%3A3d31b21c-01a0-4da2-8827-4bc6e88b7618%2Ficon-black.svg';
 
-const onBtnClick = function (t, opts, name) {
-  const idList = '634e9722b4841601426eb654'
-  const apiKey = 'd0953718ba675c5915d61f31bb3f1584'
-  const apiToken = 'ATTA114ab4f0509543af646af522037227ff36c3c59a2408d6491cd38b7a99bdb2537DF30BDC'
+    const onBtnClick = function(t, opts) {
+  const idBoard = '634e9722b4841601426eb64c';
+  const idList = '634e9722b4841601426eb654';
+  const apiKey = 'd0953718ba675c5915d61f31bb3f1584';
+  const apiToken = 'ATTA114ab4f0509543af646af522037227ff36c3c59a2408d6491cd38b7a99bdb2537DF30BDC';
 
-  fetch(`https://api.trello.com/1/cards?idList=${idList}&key=${apiKey}&token=${apiToken}&name=${name}`, {
-  method: 'POST',
-  headers: {
-    'Accept': 'application/json'
-  }
-})
-  .then(response => {
-    console.log(
-      `Response: ${response.status} ${response.statusText}`
-    );
-    return response.text();
+  fetch(`https://api.trello.com/1/boards/${idBoard}/cards?key=${apiKey}&token=${apiToken}`, {
+    method: 'GET'
   })
-  .then(text => console.log(text))
-  .catch(err => console.error(err));
+    .then(response => {
+      console.log(`Response: ${response.status} ${response.statusText}`);
+      return response.text();
+    })
+    .then(text => {
+      const cards = JSON.parse(text);
+      const maxNumber = cards.reduce((max, card) => {
+        const name = card.name.replace(/\D/g, '');
+        const number = parseInt(name);
+        if (number > max) {
+          max = number;
+        }
+        return max;
+      }, 0);
+
+      const newCardName = String(maxNumber + 1);
+
+      fetch(`https://api.trello.com/1/cards?idList=${idList}&key=${apiKey}&token=${apiToken}&name=${newCardName}`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json'
+        }
+      })
+        .then(response => {
+          console.log(`Response: ${response.status} ${response.statusText}`);
+          return response.text();
+        })
+        .catch(err => console.error(err));
+    })
+    .catch(err => console.error(err));
 };
 
-window.TrelloPowerUp.initialize({
-  'board-buttons': function (t, opts) {
-    return [{
-      // we can either provide a button that has a callback function
-      icon: {
-        dark: WHITE_ICON,
-        light: BLACK_ICON
-      },
-      text: 'Callback',
-      callback: onBtnClick,
-      condition: 'edit'
-    }, {
-      // or we can also have a button that is just a simple url
-      // clicking it will open a new tab at the provided url
-      icon: {
-        dark: WHITE_ICON,
-        light: BLACK_ICON
-      },
-      text: 'URL',
-      condition: 'always',
-      url: 'https://trello.com/inspiration',
-      target: 'Inspiring Boards' // optional target for above url
-    }];
-  }
-});
+
+    window.TrelloPowerUp.initialize({
+      'board-buttons': function (t, opts) {
+        return [{
+          icon: {
+            dark: WHITE_ICON,
+            light: BLACK_ICON
+          },
+          text: 'Add Card',
+          callback: onBtnClick,
+          condition: 'edit'
+        }];
+      }
+    });
     </script>
   </body>
 </html>
