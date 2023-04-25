@@ -1,55 +1,57 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-  </head>
-  <body>
-    <script src="https://p.trellocdn.com/power-up.min.js"></script>
-    <script>
+
+<head>
+  <meta charset="utf-8" />
+</head>
+
+<body>
+  <script src="https://p.trellocdn.com/power-up.min.js"></script>
+  <script>
     const WHITE_ICON = 'https://cdn.hyperdev.com/us-east-1%3A3d31b21c-01a0-4da2-8827-4bc6e88b7618%2Ficon-white.svg';
     const BLACK_ICON = 'https://cdn.hyperdev.com/us-east-1%3A3d31b21c-01a0-4da2-8827-4bc6e88b7618%2Ficon-black.svg';
+  
+    const idBoard = '634e9722b4841601426eb64c';
+    const idList = '634e9722b4841601426eb655';
+    const apiKey = 'd0953718ba675c5915d61f31bb3f1584';
+    const apiToken = 'ATTA114ab4f0509543af646af522037227ff36c3c59a2408d6491cd38b7a99bdb2537DF30BDC';
+  
+    let isFetching = false;
+    let cachedCards = null;
 
-    const onBtnClick = function(t, opts) {
-  const idBoard = '634e9722b4841601426eb64c';
-  const idList = '634e9722b4841601426eb654';
-  const apiKey = 'd0953718ba675c5915d61f31bb3f1584';
-  const apiToken = 'ATTA114ab4f0509543af646af522037227ff36c3c59a2408d6491cd38b7a99bdb2537DF30BDC';
+    const onBtnClick = async function (t, opts) {
+      if (isFetching) return;
 
-  fetch(`https://api.trello.com/1/boards/${idBoard}/cards?key=${apiKey}&token=${apiToken}`, {
-    method: 'GET'
-  })
-    .then(response => {
-      console.log(`Response: ${response.status} ${response.statusText}`);
-      return response.text();
-    })
-    .then(text => {
-      const cards = JSON.parse(text);
-      const maxNumber = cards.reduce((max, card) => {
-        const name = card.name.replace(/\D/g, '');
-        const number = parseInt(name);
-        if (number > max) {
-          max = number;
-        }
-        return max;
-      }, 0);
+      isFetching = true;
 
-      const newCardName = String(maxNumber + 1);
+      try {
+        const cards = cachedCards || await fetch(`https://api.trello.com/1/boards/${idBoard}/cards?key=${apiKey}&token=${apiToken}`).then(response => response.json());
 
-      fetch(`https://api.trello.com/1/cards?idList=${idList}&key=${apiKey}&token=${apiToken}&name=${newCardName}`, {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json'
-        }
-      })
-        .then(response => {
-          console.log(`Response: ${response.status} ${response.statusText}`);
-          return response.text();
-        })
-        .catch(err => console.error(err));
-    })
-    .catch(err => console.error(err));
-};
+        const maxNumber = cards.reduce((max, card) => {
+          const name = card.name.replace(/\D/g, '');
+          const number = parseInt(name);
+          if (number > max) {
+            max = number;
+          }
+          return max;
+        }, 0);
 
+        const newCardName = String(maxNumber + 1);
+
+        await fetch(`https://api.trello.com/1/cards?idList=${idList}&key=${apiKey}&token=${apiToken}&name=${newCardName}`, {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+
+        cachedCards = null;
+      } catch (err) {
+        console.error(err);
+      } finally {
+        isFetching = false;
+      }
+    };
 
     window.TrelloPowerUp.initialize({
       'board-buttons': function (t, opts) {
@@ -64,6 +66,7 @@
         }];
       }
     });
-    </script>
-  </body>
+  </script>
+</body>
+
 </html>
