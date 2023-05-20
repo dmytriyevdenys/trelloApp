@@ -20,7 +20,22 @@
     let isFetching = false;
     let cachedCards = null;
 
+  
+    window.TrelloPowerUp.initialize({
+      'board-buttons': function (t, opts) {
+        return [{
+          icon: {
+            dark: WHITE_ICON,
+            light: BLACK_ICON
+          },
+          text: 'Add Card',
+          callback: onBtnClick,
+          condition: 'edit'
+        }];
+      }
+    });
     const onBtnClick = async function (t, opts) {
+ 
   if (isFetching) return;
 
   isFetching = true;
@@ -48,7 +63,7 @@
 
     const newcardId = newcard.id;
     const desc = newcard.name;
-
+ 
     await fetch(`https://api.trello.com/1/cards/${newcardId}/?key=${apiKey}&token=${apiToken}&idMembers=${idMember}&desc=${desc}`, {
       method: 'PUT'
     });
@@ -58,33 +73,17 @@
     });
 
     // Відкриття нової картки
-    t.showCard({
-      url: `/c/${newcardId}`,
-      height: 500,
-      fullscreen: false
-    });
-
+    t.showCard(newcardId);
     cachedCards = null;
   } catch (err) {
     console.error(err);
   } finally {
     isFetching = false;
   }
-};
 
-    window.TrelloPowerUp.initialize({
-      'board-buttons': function (t, opts) {
-        return [{
-          icon: {
-            dark: WHITE_ICON,
-            light: BLACK_ICON
-          },
-          text: 'Add Card',
-          callback: onBtnClick,
-          condition: 'edit'
-        }];
-      }
-    });
+  
+};
+  
   </script>
 </body>
 
